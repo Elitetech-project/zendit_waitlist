@@ -7,10 +7,13 @@ import { toast } from "sonner";
 
 import Image from "next/image";
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Initialize Supabase client lazily to avoid build-time errors
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.POSTGRES_URL_SUPABASE_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_POSTGRES_URL_SUPABASE_SUPABASE_ANON_KEY;
+
+const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
 
 const ZenditLogo = ({ className = "" }: { className?: string }) => (
   <div className={`relative h-18 w-32 ${className}`}>
@@ -36,6 +39,11 @@ export default function Home() {
     setLoading(true);
 
     try {
+      if (!supabase) {
+        toast.error("Database connection not configured. Check environment variables.");
+        return;
+      }
+
       const { error: supabaseError } = await supabase
         .from("waitlist")
         .insert([{ email }]);
