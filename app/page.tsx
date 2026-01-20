@@ -1,9 +1,16 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { createClient } from "@supabase/supabase-js";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import Image from "next/image";
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const ZenditLogo = ({ className = "" }: { className?: string }) => (
   <div className={`relative h-18 w-32 ${className}`}>
@@ -19,13 +26,34 @@ const ZenditLogo = ({ className = "" }: { className?: string }) => (
 
 export default function Home() {
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      setSubmitted(true);
-      setEmail("");
+    if (!email) return;
+
+    setLoading(true);
+
+    try {
+      const { error: supabaseError } = await supabase
+        .from("waitlist")
+        .insert([{ email }]);
+
+      if (supabaseError) {
+        if (supabaseError.code === "23505") {
+          toast.error("You're already on the waitlist! 🚀");
+        } else {
+          toast.error(supabaseError.message);
+        }
+      } else {
+        toast.success("Successfully added to the Zendit waitlist!");
+        setEmail("");
+      }
+    } catch (err) {
+      toast.error("Connection failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,14 +66,62 @@ export default function Home() {
       </div>
 
       {/* Navbar */}
-      <nav className="fixed top-0 flex w-full items-center justify-between px-6 py-6 md:px-12 z-50">
-        <div className="flex items-center gap-1">
-          <ZenditLogo />
+      <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4 md:p-6">
+        <div className="flex w-full max-w-7xl items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-6 py-3 backdrop-blur-md dark:bg-black/20">
+          <div className="flex items-center gap-1">
+            <ZenditLogo />
+          </div>
+
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500 transition-colors">
+            <a href="https://zendit.gitbook.io/zendit" target="_blank" className="hover:text-foreground">Documentation</a>
+            <a href="mailto:zendit.contact@gmail.com" className="rounded-full bg-foreground px-5 py-2 text-background hover:opacity-90 transition-opacity">Contact</a>
+          </div>
+
+          {/* Mobile Nav Button */}
+          <div className="flex md:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-zinc-500 hover:text-foreground"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500 transition-colors">
-          <a href="https://zendit.gitbook.io/zendit" target="_blank" className="hover:text-foreground">Documentation</a>
-          <a href="mailto:zendit.contact@gmail.com" className="rounded-full bg-foreground px-5 py-2 text-background hover:opacity-90 transition-opacity">Contact</a>
-        </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-20 left-4 right-4 z-40 flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/90 p-6 shadow-2xl backdrop-blur-xl dark:bg-zinc-900/90 md:hidden"
+            >
+              <a
+                href="https://zendit.gitbook.io/zendit"
+                target="_blank"
+                className="text-lg font-semibold text-zinc-900 dark:text-white"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Documentation
+              </a>
+              <a
+                href="mailto:zendit.contact@gmail.com"
+                className="rounded-xl bg-foreground py-3 text-center font-bold text-background"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Contact Us
+              </a>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       <main className="flex flex-col items-center pt-32 pb-20 px-6">
@@ -74,29 +150,30 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="w-full max-w-md mx-auto"
           >
-            {submitted ? (
-              <div className="p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
-                <h3 className="text-lg font-semibold mb-2 text-black dark:text-white">You're on the list! 🚀</h3>
-                <p className="text-zinc-500 text-sm focus:outline-none">We'll notify you as soon as we open access to the Zendit sandbox.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="relative flex flex-col sm:flex-row gap-2 p-2 rounded-2xl bg-white dark:bg-zinc-900 shadow-2xl shadow-brand-orange/10 border border-zinc-200 dark:border-zinc-800">
-                <input
-                  type="email"
-                  placeholder="Enter your work email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-transparent outline-none text-sm text-black dark:text-white"
-                />
-                <button
-                  type="submit"
-                  className="sm:px-6 py-3 rounded-xl bg-brand-gradient text-white text-sm font-semibold hover:opacity-90 transition-all active:scale-95 whitespace-nowrap"
-                >
-                  Request Early Access
-                </button>
-              </form>
-            )}
+            <form onSubmit={handleSubmit} className="relative flex flex-col sm:flex-row gap-2 p-2 rounded-2xl bg-white dark:bg-zinc-900 shadow-2xl shadow-brand-orange/10 border border-zinc-200 dark:border-zinc-800">
+              <input
+                type="email"
+                placeholder="Enter your work email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-transparent outline-none text-sm text-black dark:text-white"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="sm:px-6 py-3 rounded-xl bg-brand-gradient text-white text-sm font-semibold hover:opacity-90 transition-all active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[160px]"
+              >
+                {loading ? (
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  "Request Early Access"
+                )}
+              </button>
+            </form>
             <p className="mt-4 text-xs text-zinc-500">
               Join the future of orchestrated liquidity on Flare.
             </p>

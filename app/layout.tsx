@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Zendit | Two-Rail Payment Infrastructure",
-    description: "Orchestrating the transition from on-chain liquidity to real-world fiat settlement on Flare.",
+    description: "Orchestrating the transition from on-chain liquidity and real-world fiat settlement on Flare.",
     site: "@zenditpay",
     creator: "@zenditpay",
     images: ["/logo.png"],
@@ -57,6 +58,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Toaster position="top-right" richColors />
         {children}
       </body>
     </html>
