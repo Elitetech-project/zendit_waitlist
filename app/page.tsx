@@ -110,7 +110,7 @@ export default function Home() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="absolute top-20 left-4 right-4 z-40 flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/90 p-6 shadow-2xl backdrop-blur-xl dark:bg-zinc-900/90 md:hidden"
+              className="absolute top-25 left-4 right-4 z-40 flex flex-col gap-4 rounded-2xl 0 bg-brand-gradient p-6 shadow-2xl backdrop-blur-xl dark:bg-zinc-900/90 md:hidden"
             >
               <a
                 href="https://zendit.gitbook.io/zendit"
@@ -122,7 +122,7 @@ export default function Home() {
               </a>
               <a
                 href="mailto:zendit.contact@gmail.com"
-                className="rounded-xl bg-foreground py-3 text-center font-bold text-background"
+                className="rounded-xl bg-foreground py-3 font-bold text-background"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact Us
