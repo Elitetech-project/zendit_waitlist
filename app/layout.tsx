@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     siteName: "Zendit",
     images: [
       {
-        url: "/logo.png",
+        url: "/favicon.ico",
         width: 1200,
         height: 630,
         alt: "Zendit - Two-Rail Payment System",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     description: "Orchestrating the transition from on-chain liquidity and real-world fiat settlement on Flare.",
     site: "@zenditpay",
     creator: "@zenditpay",
-    images: ["/logo.png"],
+    images: ["/favicon.ico"],
   },
   robots: {
     index: true,
