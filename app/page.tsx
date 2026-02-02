@@ -10,7 +10,7 @@ import Image from "next/image";
 const ZenditLogo = ({ className = "" }: { className?: string }) => (
   <div className={`relative h-18 w-32 ${className}`}>
     <Image
-      src="/logo.png"
+      src="/logo1.png"
       alt="Zendit Logo"
       fill
       className="object-contain dark:brightness-125 dark:contrast-125"
